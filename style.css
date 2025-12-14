@@ -19,6 +19,35 @@ canvas {
     touch-action: none;
 }
 
+.intro {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.92);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    z-index: 1;
+}
+
+#fx {
+    pointer-events: none;
+}
+
+.intro-text {
+    font-weight: 800;
+    font-size: clamp(20px, 3.6vw, 34px);
+    letter-spacing: 0.02em;
+}
+
+.intro-hint {
+    font-weight: 600;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.70);
+}
+
 @media (max-width: 520px) {
     #letterBtn {
         right: 10px;

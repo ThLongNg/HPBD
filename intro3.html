@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chúc mừng sinh nhật chị Vanh Nguyen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <main class="intro" id="intro3" aria-label="Intro 3">
+    <div class="intro-text">Chúc mừng sinh nhật chị Vanh Nguyen!</div>
+    <div class="intro-hint">14/12 • Bấm vào màn hình để vào trang chính</div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./bgm.js"></script>
+  <script src="./fx.js"></script>
+
+  <script>
+    (function () {
+      var el = document.getElementById('intro3');
+      if (!el) return;
+
+      function goNext() {
+        try { window.__BGM_START && window.__BGM_START(); } catch (e) {}
+        try { sessionStorage.setItem('introPassed', '1'); } catch (e) {}
+        var qs = window.location.search || '';
+        window.setTimeout(function () {
+          window.location.href = './index.html' + qs;
+        }, 120);
+      }
+
+      el.addEventListener('click', goNext, { passive: true });
+    })();
+  </script>
+</body>
+
+</html>

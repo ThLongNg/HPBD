@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Hé lộ nè</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <main class="intro" id="intro2" aria-label="Intro 2">
+    <div class="intro-text">Chị Vanh Nguyen ơiiii…</div>
+    <div class="intro-hint">Hôm nay 14/12 đó — bấm tiếp nha</div>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./bgm.js"></script>
+  <script src="./fx.js"></script>
+
+  <script>
+    (function () {
+      var el = document.getElementById('intro2');
+      if (!el) return;
+
+      function goNext() {
+        try { window.__BGM_START && window.__BGM_START(); } catch (e) {}
+        var qs = window.location.search || '';
+        window.setTimeout(function () {
+          window.location.href = './intro3.html' + qs;
+        }, 120);
+      }
+
+      el.addEventListener('click', goNext, { passive: true });
+    })();
+  </script>
+</body>
+
+</html>

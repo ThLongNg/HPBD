@@ -2,8 +2,14 @@
 // It is loaded before script.js and exposed as window.APP_CONFIG.
 
 window.APP_CONFIG = {
+  // Background music
+  music: {
+    src: "./happy-birthday-401919.mp3",
+    volume: 0.15
+  },
+
   // Main text (2 lines)
-  textLines: ["HAPPY BIRTHDAY", "ChizNguyen"],
+  textLines: ["Happy Birthday", "Van　Anh"],
 
   // Side date text (fixed; not based on current date)
   date: {
@@ -36,8 +42,8 @@ window.APP_CONFIG = {
       textName: 3.5,
 
       // Side date tex
-      sideKanji: 1.5,
-      sideNum: 1.9,
+      sideKanji: 3.5,
+      sideNum: 2.9,
 
       // Candle flame particles
       flame: 1.0

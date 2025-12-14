@@ -52,6 +52,7 @@
         candleAnchors: [],
         sideBoxes: null,
         sideKanjiMasks: null,
+        sideNumMasks: null,
         spawnPerFrame: 18,
         gap: 6,
         lastTs: 0,
@@ -521,13 +522,42 @@
         octx.fillText(textLines[1], centerX, line2Y);
 
         // Side date texts (these sit around the cake area, so we tag them via bounding boxes)
+        // On small/mobile screens the big numeric day/month can get clipped off-screen, so:
+        // - reduce numeric scale on coarse pointers
+        // - clamp X positions based on measured text widths
         const sideBig = clamp(Math.floor(Math.min(width, height) * 0.10), 26, 110);
-        // Make the numeric day/month much bigger (per request)
-        const sideNum = clamp(Math.floor(sideBig * 2.15), 24, 230);
-        const leftX = Math.floor(width * 0.16);
-        const rightX = Math.floor(width * 0.84);
+        const sideNumMul = isCoarsePointer ? 1.65 : 2.15;
+        const sideNumMax = isCoarsePointer ? 170 : 230;
+        const sideNum = clamp(Math.floor(sideBig * sideNumMul), 24, sideNumMax);
         const sideTopY = clamp(Math.floor(height * 0.24), Math.floor(height * 0.18), Math.floor(height * 0.34));
         const sideGap = Math.floor(Math.max(sideBig * 1.10, sideNum * 0.95));
+
+        // Measure widths for safe layout
+        octx.font = `900 ${sideBig}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
+        const mKanji = octx.measureText("日");
+        const mKanji2 = octx.measureText("月");
+        octx.font = `900 ${sideNum}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
+        const mDay = octx.measureText(String(birthDay));
+        const mMonth = octx.measureText(String(birthMonth));
+
+        const leftW = Math.max(mKanji.width, mDay.width) + sideBig * 0.46;
+        const rightW = Math.max(mKanji2.width, mMonth.width) + sideBig * 0.46;
+        const boxH = sideGap + Math.max(sideBig, sideNum) * 0.95;
+
+        const marginX = Math.max(12 * dpr, sideBig * 0.45);
+        const midX = width / 2;
+
+        let leftX = Math.floor(width * (isCoarsePointer ? 0.22 : 0.16));
+        let rightX = Math.floor(width * (isCoarsePointer ? 0.78 : 0.84));
+
+        leftX = clamp(leftX, Math.floor(leftW / 2 + marginX), Math.floor(midX - marginX));
+        rightX = clamp(rightX, Math.floor(midX + marginX), Math.floor(width - rightW / 2 - marginX));
+
+        // If the screen is extremely narrow, fall back to a symmetric layout.
+        if (!(leftX < rightX)) {
+            leftX = Math.floor(width * 0.26);
+            rightX = Math.floor(width * 0.74);
+        }
 
         // Left: 日 + day
         octx.font = `900 ${sideBig}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
@@ -540,15 +570,6 @@
         octx.fillText("月", rightX, sideTopY);
         octx.font = `900 ${sideNum}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
         octx.fillText(String(birthMonth), rightX, sideTopY + sideGap);
-
-        // Approx bounding boxes for tagging sampled points
-        const mKanji = octx.measureText("日");
-        const mDay = octx.measureText(String(birthDay));
-        const mKanji2 = octx.measureText("月");
-        const mMonth = octx.measureText(String(birthMonth));
-        const leftW = Math.max(mKanji.width, mDay.width) + sideBig * 0.46;
-        const rightW = Math.max(mKanji2.width, mMonth.width) + sideBig * 0.46;
-        const boxH = sideGap + Math.max(sideBig, sideNum) * 0.95;
 
         const kanjiH = sideBig * 1.25;
         const numH = sideNum * 1.10;
@@ -591,20 +612,25 @@
             }
         };
 
-        // Build cropped alpha masks for 日 and 月 so only those particles stay within glyph outlines
+        // Build cropped alpha masks for side date glyphs so particles stay within outlines
         {
-            const offKanji = document.createElement("canvas");
-            offKanji.width = width;
-            offKanji.height = height;
-            const kctx = offKanji.getContext("2d");
+            const offSide = document.createElement("canvas");
+            offSide.width = width;
+            offSide.height = height;
+            const kctx = offSide.getContext("2d");
             if (kctx) {
                 kctx.clearRect(0, 0, width, height);
                 kctx.textAlign = "center";
                 kctx.textBaseline = "middle";
                 kctx.fillStyle = "#ffffff";
+                // Kanji
                 kctx.font = `900 ${sideBig}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
                 kctx.fillText("日", leftX, sideTopY);
                 kctx.fillText("月", rightX, sideTopY);
+                // Numbers
+                kctx.font = `900 ${sideNum}px system-ui, -apple-system, "Segoe UI", Roboto, Arial`;
+                kctx.fillText(String(birthDay), leftX, sideTopY + sideGap);
+                kctx.fillText(String(birthMonth), rightX, sideTopY + sideGap);
 
                 const img = kctx.getImageData(0, 0, width, height).data;
 
@@ -630,8 +656,14 @@
                     day: cropMask(state.sideBoxes.dayKanji, 24),
                     month: cropMask(state.sideBoxes.monthKanji, 24)
                 };
+
+                state.sideNumMasks = {
+                    day: cropMask(state.sideBoxes.dayNum, 24),
+                    month: cropMask(state.sideBoxes.monthNum, 24)
+                };
             } else {
                 state.sideKanjiMasks = null;
+                state.sideNumMasks = null;
             }
         }
 
@@ -842,6 +874,21 @@
 
     function isInsideSideKanjiMask(kind, x, y) {
         const m = state.sideKanjiMasks;
+        if (!m) return false;
+        const entry = m[kind];
+        if (!entry) return false;
+
+        const xi = x | 0;
+        const yi = y | 0;
+        if (xi < entry.ox || yi < entry.oy || xi >= entry.ox + entry.w || yi >= entry.oy + entry.h) return false;
+
+        const lx = xi - entry.ox;
+        const ly = yi - entry.oy;
+        return entry.alpha[ly * entry.w + lx] >= entry.thresh;
+    }
+
+    function isInsideSideNumMask(kind, x, y) {
+        const m = state.sideNumMasks;
         if (!m) return false;
         const entry = m[kind];
         if (!entry) return false;
@@ -1366,8 +1413,26 @@
                             }
                         }
                     } else {
-                        // numbers stay within their own box
-                        if (state.sideBoxes) {
+                        // Numbers: keep them inside the digit glyph outline (so the number stays readable).
+                        // Fallback to bounding box if masks aren't available.
+                        const kind = p.group === "sideDay" ? "day" : "month";
+                        if (state.sideNumMasks) {
+                            if (!isInsideSideNumMask(kind, nx, ny)) {
+                                p.vx *= -0.55;
+                                p.vy *= -0.55;
+                                nx = p.x + p.vx;
+                                ny = p.y + p.vy;
+
+                                for (let k = 0; k < 3 && !isInsideSideNumMask(kind, nx, ny); k++) {
+                                    nx = lerp(nx, anchorX, 0.60);
+                                    ny = lerp(ny, anchorY, 0.60);
+                                }
+                                if (!isInsideSideNumMask(kind, nx, ny)) {
+                                    nx = anchorX;
+                                    ny = anchorY;
+                                }
+                            }
+                        } else if (state.sideBoxes) {
                             const b = p.group === "sideDay" ? state.sideBoxes.dayNum : state.sideBoxes.monthNum;
                             if (nx < b.minX) {
                                 nx = b.minX;

@@ -3,8 +3,19 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Happy Birthday Cake Particles</title>
+  <title>Happy Birthday!!!!!!❤️🍰🎂🍰❤️</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      try {
+        if (sessionStorage.getItem('introPassed') !== '1') {
+          window.location.replace('./intro.html' + (window.location.search || ''));
+        }
+      } catch (e) {
+        // If storage is blocked, allow index to load.
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -25,6 +36,7 @@
     </div>
   </div>
   <script src="./config.js"></script>
+  <script src="./bgm.js"></script>
   <script src="./script.js"></script>
 </body>
 
