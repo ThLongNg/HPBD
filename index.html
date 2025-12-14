@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Happy Birthday Cake Particles</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <canvas id="c" aria-label="Happy Birthday particle animation"></canvas>
+  <button id="letterBtn" type="button" aria-label="Open letter"></button>
+  <div id="letterOverlay" class="letter-overlay" aria-hidden="true">
+    <div class="letter-card" role="dialog" aria-modal="true" aria-label="Letter">
+      <div class="letter-sticker s1" aria-hidden="true"></div>
+      <div class="letter-sticker s2" aria-hidden="true"></div>
+      <div class="letter-sticker s3" aria-hidden="true"></div>
+      <div class="letter-sticker s4" aria-hidden="true"></div>
+      <div class="letter-sticker s5" aria-hidden="true"></div>
+      <div class="letter-sticker s6" aria-hidden="true"></div>
+      <button id="letterClose" type="button" class="letter-close" aria-label="Close letter">×</button>
+      <div id="letterTitle" class="letter-title"></div>
+      <div id="letterBody" class="letter-body"></div>
+    </div>
+  </div>
+  <script src="./config.js"></script>
+  <script src="./script.js"></script>
+</body>
+
+</html>
